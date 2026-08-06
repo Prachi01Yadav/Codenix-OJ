@@ -1,0 +1,10 @@
+﻿.env
+backend/api-service/target/
+*.class
+*.jar
+*.zip
+*.tar.gz
+node_modules/
+dist/
+test_*.js
+test_*.sh

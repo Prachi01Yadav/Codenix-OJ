@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: algou-postgres
+    environment:
+      POSTGRES_DB: algou
+      POSTGRES_USER: algou
+      POSTGRES_PASSWORD: algou
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: algou-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend/api-service
+    container_name: algou-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/algou
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_USERNAME=algou
+      - SPRING_DATASOURCE_PASSWORD=algou
+      - EXECUTION_ENGINE_URL=http://execution-engine:5000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  execution-engine:
+    build:
+      context: ./backend/execution-service
+    container_name: algou-execution
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: algou-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:

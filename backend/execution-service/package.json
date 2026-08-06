@@ -1,0 +1,13 @@
+{
+  "name": "algou-execution-service",
+  "version": "1.0.0",
+  "description": "Code execution engine for AlgoU",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
