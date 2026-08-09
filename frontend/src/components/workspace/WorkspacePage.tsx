@@ -42,6 +42,11 @@ export function WorkspacePage() {
   useEffect(() => {
     if (!problemId) return;
     setLoading(true);
+    setCodes({});  // Reset editor code for new problem
+    setRunResult(null);
+    setSubmitResult(null);
+    setConsoleMode('idle');
+    setError(null);
     problemService
       .getProblemById(Number(problemId))
       .then((p) => {

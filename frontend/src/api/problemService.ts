@@ -161,16 +161,16 @@ function fallbackGetProblems(filter: ProblemFilterDTO): ProblemListResponseDTO {
 }
 
 function fallbackDetail(id: number): ProblemDetailDTO {
+  const problem = allProblems.find((p) => p.id === id) || allProblems[0];
   return {
-    id, title: 'Two Sum', slug: 'two-sum', difficulty: 'EASY', tags: ['Arrays', 'Hashing'],
-    description: 'Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.',
-    inputFormat: 'First line: n\nSecond line: n integers\nThird line: target',
-    outputFormat: 'Two space-separated indices.',
-    constraints: '2 <= nums.length <= 10^4',
+    id: problem.id, title: problem.title, slug: problem.slug, difficulty: problem.difficulty, tags: problem.tags,
+    description: `Solve the "${problem.title}" problem. (Detailed description unavailable in offline mode.)`,
+    inputFormat: 'See problem statement.',
+    outputFormat: 'See problem statement.',
+    constraints: 'See problem statement.',
     timeLimit: 1000, memoryLimit: 256,
     sampleTestCases: [
-      { id: 1, input: '4\n2 7 11 15\n9', expectedOutput: '0 1', isSample: true, explanation: 'nums[0] + nums[1] == 9' },
-      { id: 2, input: '3\n3 2 4\n6', expectedOutput: '1 2', isSample: true, explanation: 'nums[1] + nums[2] == 6' },
+      { id: 1, input: 'Sample input', expectedOutput: 'Sample output', isSample: true, explanation: null },
     ],
     createdAt: '', updatedAt: '',
   };

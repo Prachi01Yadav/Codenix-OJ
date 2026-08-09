@@ -15,74 +15,80 @@ const BOILERPLATE: Record<Language, string> = {
   CPP: `#include <bits/stdc++.h>
 using namespace std;
 
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        // Your code here
-        return {};
-    }
-};
-
 int main() {
-    int n;
-    if (!(cin >> n)) return 0;
-    vector<int> nums(n);
-    for (int i = 0; i < n; i++) cin >> nums[i];
-    int target;
-    cin >> target;
+    // Read input
     
-    Solution sol;
-    auto result = sol.twoSum(nums, target);
-    if (result.size() == 2) cout << result[0] << " " << result[1] << endl;
+    // Your solution here
+    
+    // Print output
+    
     return 0;
 }`,
   JAVA: `import java.util.*;
 
 class Main {
-    public int[] twoSum(int[] nums, int target) {
-        // Your code here
-        return new int[]{};
-    }
-
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        if (!sc.hasNextInt()) return;
-        int n = sc.nextInt();
-        int[] nums = new int[n];
-        for (int i = 0; i < n; i++) nums[i] = sc.nextInt();
-        int target = sc.nextInt();
         
-        Main sol = new Main();
-        int[] result = sol.twoSum(nums, target);
-        if (result != null && result.length == 2) {
-            System.out.println(result[0] + " " + result[1]);
-        }
+        // Read input
+        
+        // Your solution here
+        
+        // Print output
+        
     }
 }`,
   PYTHON: `import sys
-from typing import List
 
-class Solution:
-    def twoSum(self, nums: List[int], target: int) -> List[int]:
-        # Your code here
-        return []
-
-if __name__ == "__main__":
-    input_data = sys.stdin.read().split()
-    if not input_data:
-        sys.exit()
-    n = int(input_data[0])
-    nums = [int(x) for x in input_data[1:n+1]]
-    target = int(input_data[n+1])
+def solve():
+    # Read input
     
-    sol = Solution()
-    result = sol.twoSum(nums, target)
-    if len(result) == 2:
-        print(f"{result[0]} {result[1]}")
+    # Your solution here
+    
+    # Print output
+    pass
+
+solve()
 `,
-  JAVASCRIPT: `// JavaScript not available for this problem`,
-  GO: `// Go not available for this problem`,
-  RUST: `// Rust not available for this problem`,
+  JAVASCRIPT: `// Read input from stdin
+const input = require('fs').readFileSync('/dev/stdin', 'utf8').trim().split('\\n');
+
+// Your solution here
+
+// Print output
+`,
+  GO: `package main
+
+import (
+    "bufio"
+    "fmt"
+    "os"
+)
+
+func main() {
+    reader := bufio.NewReader(os.Stdin)
+    _ = reader
+    
+    // Read input
+    
+    // Your solution here
+    
+    // Print output
+    fmt.Println()
+}`,
+  RUST: `use std::io::{self, Read};
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).unwrap();
+    let mut iter = input.split_whitespace();
+    
+    // Read input
+    
+    // Your solution here
+    
+    // Print output
+}`,
 };
 
 interface EditorPaneProps {

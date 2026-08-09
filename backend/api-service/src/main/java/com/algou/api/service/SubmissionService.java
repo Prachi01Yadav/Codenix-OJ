@@ -23,7 +23,8 @@ public class SubmissionService {
     private final TestCaseRepository testCaseRepository;
     private final UserRepository userRepository;
     private final CodeExecutionService codeExecutionService;
-    private final SubmissionProducer submissionProducer;
+    private final SubmissionProcessor submissionProcessor;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public RunResultDTO run(RunRequestDTO request, String userEmail) {
         CompileRequest compileRequest = new CompileRequest();
@@ -44,12 +45,19 @@ public class SubmissionService {
 
         CompileResponse execResult = codeExecutionService.compileAndRun(compileRequest);
 
+        boolean success = execResult.getExitCode() == 0;
+        String output = execResult.getStdout() != null ? execResult.getStdout() : "";
+        String error = null;
+        if (!success) {
+            error = (execResult.getStderr() != null && !execResult.getStderr().isBlank())
+                    ? execResult.getStderr()
+                    : "Execution failed with exit code " + execResult.getExitCode();
+        }
+
         return RunResultDTO.builder()
-                .success(execResult.getExitCode() == 0)
-                .output(execResult.getStdout() != null ? execResult.getStdout() : "")
-                .error(execResult.getExitCode() != 0 
-                        ? (execResult.getStderr() != null && !execResult.getStderr().isBlank() ? execResult.getStderr() : "Execution failed with exit code " + execResult.getExitCode()) 
-                        : (execResult.getStderr() != null && !execResult.getStderr().isBlank() ? execResult.getStderr() : null))
+                .success(success)
+                .output(output)
+                .error(error)
                 .executionTime(execResult.getTimeMs())
                 .exitCode(execResult.getExitCode())
                 .build();
@@ -85,7 +93,16 @@ public class SubmissionService {
                 .isRunOnly(false)
                 .build();
 
-        submissionProducer.sendSubmission(message);
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                SubmissionResultDTO result = submissionProcessor.processSubmission(message);
+                String destination = "/topic/submissions/" + result.getId();
+                log.info("Pushing result to WebSocket topic {}", destination);
+                messagingTemplate.convertAndSend(destination, result);
+            } catch (Exception e) {
+                log.error("Error processing submission message", e);
+            }
+        });
 
         return SubmissionResultDTO.builder()
                 .id(submission.getId())

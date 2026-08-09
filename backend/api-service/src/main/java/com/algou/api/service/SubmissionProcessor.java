@@ -56,7 +56,7 @@ public class SubmissionProcessor {
             Verdict tcVerdict;
             boolean tcPassed;
 
-            if (execResult.getExitCode() != 0 || (execResult.getStderr() != null && !execResult.getStderr().isBlank())) {
+            if (execResult.getExitCode() != 0) {
                 if (execResult.getStderr() != null && (execResult.getStderr().contains("timed out") || execResult.getStderr().contains("Execution timed out"))) {
                     tcVerdict = Verdict.TIME_LIMIT_EXCEEDED;
                 } else if (execResult.getExitCode() != 0 && execResult.getStdout().isEmpty()) {
@@ -137,6 +137,6 @@ public class SubmissionProcessor {
 
     private String normalizeOutput(String output) {
         if (output == null) return "";
-        return output.trim().replaceAll("\\r\\n", "\n").replaceAll("\\s+$", "");
+        return output.trim().replaceAll("\r\n", "\n").replaceAll("\s+$", "");
     }
 }
