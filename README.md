@@ -1,8 +1,8 @@
-# 🧠 AlgoU Online Judge (Codenix-OJ)
+# 🧠 Codenix OJ (AlgoU Online Judge)
 
-**AlgoU Online Judge** is a full-stack, web-based code compilation and judging platform that lets users write, execute, and review **C++ code in real time**. It combines a clean, modern code-editor UI with a sandboxed execution backend and **AI-powered code review** using Google's Gemini AI.
+**Codenix OJ** is a full-stack, web-based code compilation and competitive programming platform. It allows users to write, execute, and review code in real-time across multiple languages (C++, Java, Python, JavaScript, Go, Rust). The platform features a sleek, modern code-editor UI, a robust execution backend, and **AI-powered code review** using Google's Gemini AI.
 
-Built as a mini competitive-programming judge (à la Codeforces / LeetCode), it demonstrates a production-style microservice architecture: a React frontend, a Spring Boot API gateway, a Dockerized sandboxed execution service, PostgreSQL for persistence, Redis for caching/rate-limiting, and Gemini AI for intelligent feedback — all containerized with Docker Compose and deployed on AWS EC2.
+Built as a competitive-programming judge, it demonstrates a production-style microservice architecture: a React frontend, a Spring Boot API gateway, a Node.js execution service, PostgreSQL for persistence, Redis for caching, and Gemini AI for intelligent feedback.
 
 ---
 
@@ -11,78 +11,67 @@ Built as a mini competitive-programming judge (à la Codeforces / LeetCode), it 
 | Service | URL | Notes |
 |---|---|---|
 | 🌐 **Frontend (App)** | [http://13.210.108.80](http://13.210.108.80) | Main app — editor, run, and AI review UI |
-| ⚙️ **Backend API** | `http://13.210.108.80:8080` | Spring Boot REST API (`/api/**` routes) |
-| ▶️ **Execution Service** | `http://13.210.108.80:5000` | Sandboxed code-execution microservice |
-
-> ⚠️ **Note:** This is a live personal AWS EC2 deployment using a static-for-now public IP, running over **HTTP** (no domain/SSL yet). If the instance is stopped/restarted without an Elastic IP, the address may change — check this section for the latest link. A custom domain + HTTPS (via Nginx + Let's Encrypt) is on the roadmap.
+| ⚙️ **Backend API** | `http://13.210.108.80/api/**` | Spring Boot REST API |
+| ▶️ **Execution Service** | Internal (Port 5000) | Sandboxed code-execution microservice |
 
 ---
 
-## 📸 What It Does
+## 🏗️ High Level Design (HLD)
 
-1. Write C++ code in an in-browser editor with full syntax highlighting.
-2. Provide custom input (stdin) for your program.
-3. Hit **Run** → code is sent to a sandboxed Docker-based compiler service, compiled, executed, and the output/errors are streamed back.
-4. Hit **AI Review** → your code is sent to **Google's Gemini API**, which returns suggestions, complexity analysis, and improvement tips.
-5. (Roadmap) Solve structured problems with test cases and get an automatic verdict — **AC / WA / TLE / RE** — just like a real online judge.
+The architecture follows a standard microservices pattern, orchestrated via Docker Compose and deployed on AWS EC2.
 
----
+```mermaid
+graph TD
+    Client[Browser (React + Monaco Editor)]
+    Nginx[Nginx Reverse Proxy\nPort 80]
+    
+    Backend[Spring Boot API Gateway\n(Auth, Submissions, AI Proxy)]
+    Execution[Node.js Execution Engine\n(Multi-lang Compiler & Runner)]
+    
+    DB[(PostgreSQL\nUsers, Problems, TestCases)]
+    Redis[(Redis\nRate Limiting & Caching)]
+    Gemini[Google Gemini API]
 
-## ✨ Features
-
-- **🖊️ Code Editor** — Monaco Editor (the engine behind VS Code) with C++ syntax highlighting, auto-indentation, and a familiar IDE feel.
-- **⚡ Real-Time Execution** — Code is compiled and run on-demand through a backend judge service; results are returned directly to the browser.
-- **⌨️ Custom Input Support** — Pass your own stdin to test edge cases, exactly like a real judge.
-- **🤖 AI Code Review** — Integrated with **Google Gemini AI** to give instant, contextual feedback on code quality, logic, and possible optimizations.
-- **📱 Responsive Design** — Built with Tailwind CSS; works cleanly across desktop, tablet, and mobile.
-- **🔐 Auth-Ready Architecture** — JWT-based authentication scaffolding (`JwtAuthFilter`, `JwtService`, `AuthController`) already wired into the backend for user accounts.
-- **🗄️ Persistent Storage** — PostgreSQL schema for `users`, `problems`, `submissions`, and `test_cases`.
-- **🚦 Rate Limiting** — Redis-backed `RateLimitInterceptor` to protect the execution service from abuse.
-- **🔌 Real-Time Feedback (WebSockets)** — `WebSocketConfig` + `wsService.ts` for live submission status updates (e.g., "Running" → "Compiling" → "Verdict").
-- **📦 Fully Containerized** — Every service (frontend, backend, execution engine, DB, cache) runs in its own Docker container, orchestrated via `docker-compose.yml`.
-
----
-
-## 🏗️ Architecture
-
+    Client -- HTTP / WebSockets --> Nginx
+    Nginx -- /api/ --> Backend
+    Nginx -- Static Assets --> Frontend[React SPA]
+    
+    Backend -- REST --> Execution
+    Backend -- REST --> Gemini
+    Backend -- JDBC --> DB
+    Backend -- TCP --> Redis
 ```
-                        ┌─────────────────────────┐
-                        │        Browser          │
-                        │  (React + Monaco Editor) │
-                        └────────────┬────────────┘
-                                     │ HTTP / WebSocket
-                                     ▼
-                        ┌─────────────────────────┐
-                        │   Frontend (Nginx)       │
-                        │   React + Vite + TS      │  Port 80
-                        └────────────┬────────────┘
-                                     │ REST API calls
-                                     ▼
-                        ┌─────────────────────────┐
-                        │  Backend API Gateway     │
-                        │  Java Spring Boot        │  Port 8080
-                        │  Auth · Problems ·       │
-                        │  Submissions · AI Proxy  │
-                        └──────┬───────────┬───────┘
-                               │           │
-                 ┌─────────────┘           └─────────────┐
-                 ▼                                        ▼
-     ┌───────────────────────┐               ┌─────────────────────────┐
-     │  Execution Service     │              │   Google Gemini API     │
-     │  Node.js + Docker      │              │   (AI Code Review)      │
-     │  Sandboxed C++ Compile │              │                          │
-     │  Port 5000             │              └─────────────────────────┘
-     └───────────────────────┘
-                 │
-     ┌───────────┴───────────┐
-     ▼                       ▼
-┌──────────┐          ┌──────────┐
-│PostgreSQL│          │  Redis   │
-│ (data)   │          │ (cache/  │
-│Port 5432 │          │rate-lim.)│
-│          │          │Port 6379 │
-└──────────┘          └──────────┘
-```
+
+### Architecture Breakdown
+1. **Client Layer:** React SPA with Vite, styled with Tailwind CSS and Shadcn UI.
+2. **Reverse Proxy:** Nginx routes `/api` and `/ws` to the Backend, and serves static files.
+3. **Backend API:** Spring Boot (Java 21) handling authentication (JWT), database operations, WebSocket streaming, and AI integrations.
+4. **Execution Engine:** A Node.js microservice that receives code, writes it to temporary files, and executes it using `child_process.exec`.
+5. **Persistence:** PostgreSQL for relational data and Redis for ephemeral data (like Rate Limiting).
+
+---
+
+## 📅 Project Phases & Features
+
+### ✅ Phase 1: Core Foundation & UI (Implemented)
+- **🖊️ Code Editor:** Integrated Monaco Editor (VS Code engine) with syntax highlighting, auto-indentation, and multi-language support.
+- **⚡ Basic Code Execution:** Established the execution engine to compile and run C++, Java, Python, JavaScript, Go, and Rust.
+- **⌨️ Custom Input:** Added support for users to pass their own `stdin` to test edge cases.
+- **📱 Responsive Design:** Built a polished UI with Tailwind CSS that works seamlessly across devices.
+
+### ✅ Phase 2: AI Integration & Backend Hardening (Implemented)
+- **🤖 AI Code Review:** Integrated with **Google Gemini AI** to provide instant, contextual feedback on code quality, time/space complexity, and optimizations.
+- **🔌 Real-Time Feedback (WebSockets):** Implemented STOMP/WebSockets for live streaming of submission statuses (e.g., "Compiling" → "Running" → "Accepted/Wrong Answer").
+- **🔐 Authentication:** Full JWT-based authentication flow with user accounts and securely hashed passwords.
+- **🗄️ Database & Problems:** Created a persistent PostgreSQL schema for problems and test cases. The platform automatically evaluates code against hidden test cases.
+- **🚀 Production Deployment:** Deployed on AWS EC2 using Docker Compose, with Nginx reverse proxying to fix CORS and routing issues.
+
+### 🚧 Phase 3: Future Roadmap (Expected Features)
+- **🔒 True Ephemeral Sandboxing:** Transition the execution engine from running processes on the host container to spawning isolated, ephemeral Docker containers (`--network none`) per submission for robust security.
+- **🛡️ Resource Quotas:** Enforce strict CPU and memory limits (cgroups) on user code to prevent Fork Bombs and memory leaks.
+- **👑 Admin Portal:** A dedicated management dashboard for administrators to add/edit problems, test cases, and manage users.
+- **🏆 Leaderboards & Arenas:** Add a competitive aspect with real-time contest rankings and user Elo ratings.
+- **🌐 Custom Domain & SSL:** Configure Let's Encrypt for HTTPS and attach a formal custom domain.
 
 ---
 
@@ -90,109 +79,17 @@ Built as a mini competitive-programming judge (à la Codeforces / LeetCode), it 
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React (Vite) + TypeScript, Monaco Editor, Tailwind CSS, shadcn/ui |
-| **Backend** | Java 17+, Spring Boot (REST, WebSocket, Security/JWT) |
-| **Code Execution** | Node.js microservice + Dockerized, sandboxed C++ compiler |
+| **Frontend** | React (Vite), TypeScript, Monaco Editor, Tailwind CSS, shadcn/ui |
+| **Backend** | Java 21, Spring Boot (REST, WebSockets, Security/JWT) |
+| **Code Execution** | Node.js microservice |
 | **AI Review** | Google Gemini API |
-| **Database** | PostgreSQL (`users`, `problems`, `submissions`, `test_cases`) |
-| **Cache / Rate Limiting** | Redis |
-| **Containerization** | Docker & Docker Compose |
-| **Deployment** | AWS EC2 (Ubuntu), Docker Compose orchestration |
+| **Database** | PostgreSQL |
+| **Cache / Security** | Redis (Rate Limiting) |
+| **Deployment** | AWS EC2 (Ubuntu), Docker Compose, Nginx |
 
 ---
 
-## 📁 Project Structure
-
-```
-Codenix-OJ/
-├── backend/
-│   ├── api-service/                  # Spring Boot REST API
-│   │   ├── src/main/java/com/algou/api/
-│   │   │   ├── controller/           # AuthController, ProblemController,
-│   │   │   │                         # SubmissionController, CompileController,
-│   │   │   │                         # AiController, ReviewController
-│   │   │   ├── service/              # AuthService, ProblemService,
-│   │   │   │                         # SubmissionService, AiService,
-│   │   │   │                         # CodeExecutionService, AiReviewService
-│   │   │   ├── entity/               # User, Problem, Submission, TestCase,
-│   │   │   │                         # Role, Difficulty, Verdict, Language
-│   │   │   ├── repository/           # Spring Data JPA repositories
-│   │   │   ├── security/             # JwtAuthFilter, JwtService
-│   │   │   ├── config/               # CORS, WebSocket, Redis, Rate Limiting
-│   │   │   ├── dto/                  # Request/response DTOs
-│   │   │   └── exception/            # Global exception handling
-│   │   ├── src/test/                 # Unit tests (AuthServiceTest, etc.)
-│   │   ├── Dockerfile
-│   │   └── pom.xml
-│   │
-│   └── execution-service/            # Sandboxed code execution microservice
-│       ├── index.js
-│       ├── package.json
-│       └── Dockerfile
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── workspace/            # EditorPane, ConsolePane, ProblemPane,
-│   │   │   │                         # AiPanel, WorkspacePage
-│   │   │   ├── dashboard/            # DashboardNavbar, ProblemsetDashboard
-│   │   │   ├── landing/              # Hero, Navbar, Footer, BentoGrid, Marquee
-│   │   │   ├── auth/                 # AuthModal
-│   │   │   ├── effects/              # AuroraBackground, CursorTrail, MagneticButton
-│   │   │   └── ui/                   # shadcn/ui component library
-│   │   ├── api/                      # axiosInstance, authService, problemService,
-│   │   │                             # submissionService, aiService, wsService
-│   │   ├── store/                    # authStore, cursorStore (Zustand)
-│   │   └── hooks/
-│   ├── nginx.conf                    # Nginx config for serving the built SPA
-│   └── Dockerfile
-│
-├── docker-compose.yml                # Orchestrates all services
-└── README.md
-```
-
----
-
-## 🔌 Core API Endpoints (Backend)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Register a new user |
-| `POST` | `/api/auth/login` | Authenticate and receive a JWT |
-| `GET` | `/api/problems` | List all problems |
-| `GET` | `/api/problems/{id}` | Get a single problem's details |
-| `POST` | `/api/compile` | Compile & run code with custom input |
-| `POST` | `/api/submissions` | Submit a solution for judging |
-| `GET` | `/api/submissions/{id}` | Get submission result / verdict |
-| `POST` | `/api/review` | Send code to Gemini AI for review |
-
-> Exact paths may evolve as the roadmap progresses — check the controller classes under `backend/api-service/.../controller/` for the source of truth.
-
----
-
-## 🗺️ Project Roadmap
-
-- [x] **Step 1 — Frontend Scaffold:** Static UI — editor, input/output panels, Run & AI Review buttons, mocked responses
-- [x] **Step 2 — Backend Skeleton:** Java Spring Boot REST API with `/compile` and `/review` stub endpoints
-- [x] **Step 3 — Code Execution Engine:** Dockerized, sandboxed C++ compiler service invoked by the backend
-- [x] **Step 4 — Gemini AI Integration:** Real AI code review wired into `/review`
-- [x] **Step 5 — Frontend ↔ Backend Integration:** Replaced mocks with real API calls
-- [ ] **Step 6 — Online-Judge Features:** Structured problems, test cases, verdicts (AC/WA/TLE/RE), submission history, full auth flow
-- [ ] **Step 7 — Production Hardening:** Rate limiting refinements, sandbox hardening, monitoring, CI/CD, custom domain + HTTPS
-
----
-
-## ☁️ Deployment
-
-The project is deployed on an **AWS EC2** instance (Ubuntu, `ap-southeast-2` / Sydney region) using **Docker Compose** to run all services together:
-
-- `frontend` — Nginx serving the built React app → **port 80**
-- `api-service` — Spring Boot backend → **port 8080**
-- `execution-service` — Node.js sandboxed execution engine → **port 5000**
-- `postgres` — Database → **port 5432**
-- `redis` — Cache / rate limiting → **port 6379**
-
-EC2 Security Group inbound rules are configured to allow public HTTP/HTTPS/SSH traffic and the application's custom ports.
+## ☁️ Deployment Instructions
 
 ### Run it locally
 
@@ -202,36 +99,20 @@ git clone https://github.com/Prachi01Yadav/Codenix-OJ.git
 cd Codenix-OJ
 
 # 2. Add environment variables
-#    Create a .env file (NOT committed — see .gitignore) with:
-#    GEMINI_API_KEY=your_key_here
-#    DB_URL=jdbc:postgresql://postgres:5432/algou
-#    DB_USER=your_db_user
-#    DB_PASSWORD=your_db_password
-#    JWT_SECRET=your_jwt_secret
+#    Create a .env file (NOT committed) in the root directory with:
+GEMINI_API_KEY=your_gemini_api_key
+JWT_SECRET=your_jwt_secret
 
 # 3. Build and run everything with Docker Compose
-docker-compose up --build
-
-# Frontend → http://localhost:80
-# Backend  → http://localhost:8080
-# Execution service → http://localhost:5000
+docker compose up --build -d
 ```
-
----
-
-## 🔒 Security Notes
-
-- Secrets (API keys, DB credentials, JWT secret) are managed via a local `.env` file, which is **git-ignored** and never committed.
-- Code execution happens inside an **isolated Docker sandbox**, separate from the main API container, to contain untrusted user code.
-- `RateLimitInterceptor` (Redis-backed) protects the compile/execution endpoints from abuse.
-- Database (`5432`) and Redis (`6379`) ports are exposed for development convenience on the current deployment — **production hardening** (restricting these to internal-only access) is tracked in the roadmap.
+The application will be available at `http://localhost`.
 
 ---
 
 ## 🤝 Contributing
 
-This is currently a personal/academic project, but suggestions, issues, and PRs are welcome:
-
+Suggestions, issues, and PRs are welcome:
 1. Fork the repo
 2. Create a feature branch (`git checkout -b feature/your-feature`)
 3. Commit your changes (`git commit -m "Add your feature"`)
@@ -240,13 +121,7 @@ This is currently a personal/academic project, but suggestions, issues, and PRs 
 
 ---
 
-## 📄 License
-
-This project currently has no formal license attached. All rights reserved by the author unless stated otherwise.
-
----
-
 ## 👩‍💻 Author
 
-**Prachi Yadav**
+**Prachi Yadav**  
 GitHub: [@Prachi01Yadav](https://github.com/Prachi01Yadav)
