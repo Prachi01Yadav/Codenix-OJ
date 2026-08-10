@@ -18,36 +18,9 @@ Built as a competitive-programming judge, it demonstrates a production-style mic
 
 ## 🏗️ High Level Design (HLD)
 
-The architecture follows a standard microservices pattern, orchestrated via Docker Compose and deployed on AWS EC2.
+The architecture follows a standard microservices pattern. 
 
-```mermaid
-graph TD
-    Client[Browser (React + Monaco Editor)]
-    Nginx[Nginx Reverse Proxy\nPort 80]
-    
-    Backend[Spring Boot API Gateway\n(Auth, Submissions, AI Proxy)]
-    Execution[Node.js Execution Engine\n(Multi-lang Compiler & Runner)]
-    
-    DB[(PostgreSQL\nUsers, Problems, TestCases)]
-    Redis[(Redis\nRate Limiting & Caching)]
-    Gemini[Google Gemini API]
-
-    Client -- HTTP / WebSockets --> Nginx
-    Nginx -- /api/ --> Backend
-    Nginx -- Static Assets --> Frontend[React SPA]
-    
-    Backend -- REST --> Execution
-    Backend -- REST --> Gemini
-    Backend -- JDBC --> DB
-    Backend -- TCP --> Redis
-```
-
-### Architecture Breakdown
-1. **Client Layer:** React SPA with Vite, styled with Tailwind CSS and Shadcn UI.
-2. **Reverse Proxy:** Nginx routes `/api` and `/ws` to the Backend, and serves static files.
-3. **Backend API:** Spring Boot (Java 21) handling authentication (JWT), database operations, WebSocket streaming, and AI integrations.
-4. **Execution Engine:** A Node.js microservice that receives code, writes it to temporary files, and executes it using `child_process.exec`.
-5. **Persistence:** PostgreSQL for relational data and Redis for ephemeral data (like Rate Limiting).
+👉 **[View the full High-Level Design (HLD) Document here](./HLD.md)** 👈
 
 ---
 
