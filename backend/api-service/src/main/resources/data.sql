@@ -353,7 +353,7 @@ INSERT INTO test_cases (problem_id, input, expected_output, is_sample, explanati
 6', '0 1', false, null, 2),
 (1, '5
 1 5 3 7 2
-8', '1 3', false, null, 3);
+8', '0 3', false, null, 3);
 
 -- 2. Add Two Numbers
 INSERT INTO test_cases (problem_id, input, expected_output, is_sample, explanation, order_index) VALUES
