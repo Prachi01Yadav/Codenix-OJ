@@ -10,15 +10,15 @@ Codenix OJ follows a microservices-based architecture to isolate distinct respon
 
 ```mermaid
 graph TD
-    Client[Client Browser\n(React, Monaco Editor)]
-    Nginx[Nginx Reverse Proxy\nPort 80]
+    Client["Client Browser\n(React, Monaco Editor)"]
+    Nginx["Nginx Reverse Proxy\nPort 80"]
     
-    Backend[Backend API Gateway\n(Spring Boot, Port 8080)]
-    Execution[Execution Engine\n(Node.js, Port 5000)]
+    Backend["Backend API Gateway\n(Spring Boot, Port 8080)"]
+    Execution["Execution Engine\n(Node.js, Port 5000)"]
     
-    DB[(PostgreSQL\nRelational Data)]
-    Redis[(Redis\nCaching & Rate Limiting)]
-    Gemini[Google Gemini API\n(AI Code Review)]
+    DB[("PostgreSQL\nRelational Data")]
+    Redis[("Redis\nCaching & Rate Limiting")]
+    Gemini["Google Gemini API\n(AI Code Review)"]
 
     Client -- HTTP / WebSockets --> Nginx
     Nginx -- Static Assets --> Client

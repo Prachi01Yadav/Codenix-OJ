@@ -22,19 +22,19 @@ The architecture follows a standard microservices pattern, orchestrated via Dock
 
 ```mermaid
 graph TD
-    Client[Browser (React + Monaco Editor)]
-    Nginx[Nginx Reverse Proxy\nPort 80]
+    Client["Browser (React + Monaco Editor)"]
+    Nginx["Nginx Reverse Proxy\nPort 80"]
     
-    Backend[Spring Boot API Gateway\n(Auth, Submissions, AI Proxy)]
-    Execution[Node.js Execution Engine\n(Multi-lang Compiler & Runner)]
+    Backend["Spring Boot API Gateway\n(Auth, Submissions, AI Proxy)"]
+    Execution["Node.js Execution Engine\n(Multi-lang Compiler & Runner)"]
     
-    DB[(PostgreSQL\nUsers, Problems, TestCases)]
-    Redis[(Redis\nRate Limiting & Caching)]
-    Gemini[Google Gemini API]
+    DB[("PostgreSQL\nUsers, Problems, TestCases")]
+    Redis[("Redis\nRate Limiting & Caching")]
+    Gemini["Google Gemini API"]
 
     Client -- HTTP / WebSockets --> Nginx
     Nginx -- /api/ --> Backend
-    Nginx -- Static Assets --> Frontend[React SPA]
+    Nginx -- Static Assets --> Frontend["React SPA"]
     
     Backend -- REST --> Execution
     Backend -- REST --> Gemini
