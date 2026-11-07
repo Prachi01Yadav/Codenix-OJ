@@ -1,10 +1,28 @@
-﻿.env
-backend/api-service/target/
+# Java / Maven build outputs
+target/
 *.class
 *.jar
-*.zip
-*.tar.gz
+*.war
+.mvn/timing.properties
+
+# Node / Frontend dependencies & builds
 node_modules/
 dist/
-test_*.js
-test_*.sh
+.vite/
+
+# Secret environment variables (Never commit API keys to GitHub!)
+.env
+.env.local
+
+# IDE & OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local scratch study files
+quiz.html
+java-streams*
+
+

@@ -1,29 +1,49 @@
 services:
+  # 1. The PostgreSQL Database Vault (Port 5432)
+  postgres:
+    image: postgres:16-alpine
+    container_name: geetcode-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: geetcode
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. The Isolated Code Execution Sandbox (Port 8081)
+  executor:
+    build: ./executor-service
+    container_name: geetcode-executor
+    ports:
+      - "8081:8081"
+    mem_limit: 512m # Sandbox safety: caps container RAM at 512MB so infinite loops can't eat your laptop's RAM!
+
+  # 3. The Main GeetCODE Backend API (Port 8080)
   backend:
-    build:
-      context: ./backend/api-service
-    container_name: algou-backend
+    build: ./GeetCODE
+    container_name: geetcode-backend
     ports:
       - "8080:8080"
-    environment:
-      - EXECUTION_ENGINE_URL=http://execution-engine:5000
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-none}
-      - JWT_SECRET=codenix-production-jwt-secret-key-256-bits-long-for-hs256-algorithm
     depends_on:
-      - execution-engine
+      - postgres
+      - executor
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/geetcode
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      EXECUTOR_URL: http://executor:8081/execute
 
-  execution-engine:
-    build:
-      context: ./backend/execution-service
-    container_name: algou-execution
-    ports:
-      - "5000:5000"
-
+  # 4. The React Frontend + Nginx Reverse Proxy (Port 80 inside container -> http://localhost:3000)
   frontend:
-    build:
-      context: ./frontend
-    container_name: algou-frontend
+    build: ./frontend
+    container_name: geetcode-frontend
     ports:
       - "80:80"
+      - "3000:80"
     depends_on:
       - backend
+volumes:
+  pgdata:
